@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Library</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #121212;
+            color: #b3b3b3;
+            height: 100vh;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .accent-bg { background-color: #1ed760; color: black; border: none; }
+        .accent-bg:hover { background-color: #1db954; color: black; }
+
+        .library-panel {
+            height: 100vh;
+            overflow-y: auto;
+            border-right: 1px solid #282828;
+            padding: 20px;
+        }
+        .table { --bs-table-bg: transparent; color: #b3b3b3; }
+        .table th { color: #888; border-bottom: 1px solid #282828; font-weight: normal; }
+        .table td {
+            border-bottom: none;
+            padding: 12px 8px;
+            vertical-align: middle;
+            cursor: pointer;
+            color: #e0e0e0;
+        }
+        .table tbody tr:hover td { background-color: #2a2a2a; }
+        .row-active td { background-color: #2a2a2a; }
+        .row-active td:first-child { border-left: 4px solid #1ed760; }
+        .row-active .song-title { color: #1ed760; font-weight: bold; }
+        .badge-genre {
+            background-color: #1a1a1a;
+            color: #1ed760;
+            border: 1px solid #1ed760;
+            font-weight: normal;
+        }
+
+        .edit-panel {
+            height: 100vh;
+            overflow-y: auto;
+            background-color: #181818;
+            padding: 30px;
+        }
+        .form-control {
+            background-color: #282828;
+            border: 1px solid #333;
+            color: white;
+            font-size: 0.85rem;
+        }
+        .form-control:focus {
+            background-color: #333;
+            color: white;
+            border-color: #1ed760;
+            box-shadow: none;
+        }
+        .form-label {
+            font-size: 0.8rem;
+            margin-bottom: 2px;
+            margin-top: 10px;
+            color: #888;
+        }
+
+        .checkbox-scroll {
+            max-height: 90px;
+            overflow-y: auto;
+            background-color: #282828;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 6px;
+        }
+        .checkbox-scroll label {
+            display: block;
+            color: #b3b3b3;
+            cursor: pointer;
+            margin-bottom: 2px;
+            font-size: 0.85rem;
+        }
+        .checkbox-scroll label:hover { color: #fff; }
+        .checkbox-scroll input { margin-right: 6px; accent-color: #1ed760; }
+
+        .admin-link {
+            float: right;
+            font-size: 0.7rem;
+            color: #1ed760;
+            text-decoration: none;
+            margin-top: 12px;
+        }
+        .admin-link:hover { color: #fff; }
+
+        /* Tom Select dark mode */
+        .ts-wrapper { margin-bottom: 0; }
+        .ts-control {
+            background-color: #282828 !important;
+            border: 1px solid #333 !important;
+            color: white !important;
+            border-radius: 4px;
+            padding: 6px;
+            min-height: 38px;
+        }
+        .ts-control input { color: white !important; }
+        .ts-dropdown {
+            background-color: #282828 !important;
+            border: 1px solid #333 !important;
+            color: white;
+        }
+        .ts-dropdown .option { color: #b3b3b3; padding: 8px 12px; }
+        .ts-dropdown .option:hover,
+        .ts-dropdown .option.active {
+            background-color: #1ed760 !important;
+            color: black !important;
+        }
+        .ts-control .item {
+            background-color: #1ed760 !important;
+            color: black !important;
+            border-radius: 3px;
+            border: none !important;
+            margin: 2px;
+            padding: 2px 8px;
+        }
+        .ts-control .item .remove {
+            border-left: 1px solid rgba(0,0,0,0.2);
+            color: black !important;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #121212; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid p-0">
+    <div class="row g-0">
+
+        <!-- ================= LEFT PANEL ================= -->
+        <div class="col-md-8 library-panel">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <input type="text" class="form-control w-25 rounded-pill" placeholder="Search library...">
+                <a href="{% url 'add_song' %}" class="btn accent-bg rounded-circle fw-bold"
+                   style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;text-decoration:none;">+</a>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success bg-dark text-success border-success py-2">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width:5%">#</th>
+                        <th style="width:30%">Title</th>
+                        <th style="width:25%">Artist</th>
+                        <th style="width:20%">Album</th>
+                        <th style="width:10%">Genre</th>
+                        <th style="width:10%">Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for song in songs %}
+                    <tr class="song-row"
+                        onclick="selectSong(this)"
+                        data-id="{{ song.id }}"
+                        data-title="{{ song.songName }}"
+                        data-album="{{ song.album }}"
+                        data-year="{{ song.year }}"
+                        data-length="{{ song.songLength }}"
+                        data-isrc="{{ song.isrc }}"
+                        data-playcount="{{ song.playCount }}"
+                        data-artist-names="{% for a in song.artists.all %}{{ a.artistName }}{% if not forloop.last %}, {% endif %}{% endfor %}"
+                        data-artist-ids="{% for a in song.artists.all %}{{ a.id }}{% if not forloop.last %},{% endif %}{% endfor %}"
+                        data-genre-ids="{% for g in song.genres.all %}{{ g.id }}{% if not forloop.last %},{% endif %}{% endfor %}"
+                        data-lang-ids="{% for l in song.languages.all %}{{ l.id }}{% if not forloop.last %},{% endif %}{% endfor %}"
+                        data-tag-ids="{% for t in song.tags.all %}{{ t.id }}{% if not forloop.last %},{% endif %}{% endfor %}"
+                        data-mytag-ids="{% for mt in song.mytags.all %}{{ mt.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+
+                        <td>{{ forloop.counter }}</td>
+                        <td class="song-title">{{ song.songName }}</td>
+                        <td>
+                            {% for artist in song.artists.all|slice:":2" %}
+                                {{ artist.artistName }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                <span class="text-muted">Unknown</span>
+                            {% endfor %}
+                        </td>
+                        <td>{{ song.album }}</td>
+                        <td>
+                            {% for genre in song.genres.all|slice:":1" %}
+                                <span class="badge badge-genre">{{ genre.genreName }}</span>
+                            {% endfor %}
+                        </td>
+                        <td>{{ song.songLength }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">No songs found. Click + to add one.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ================= RIGHT PANEL ================= -->
+        <div class="col-md-4 edit-panel">
+
+            <div id="no-selection-msg" class="text-center mt-5 text-muted">
+                <p style="font-size:1.1rem;">Select a song to edit details</p>
+            </div>
+
+            <div id="edit-form-container" style="display:none;">
+                <h4 id="display-title" class="text-center text-white mb-0 mt-2">Song Title</h4>
+                <p id="display-artist" class="text-center text-secondary mb-3">Artist Name</p>
+
+                <form id="metadataForm" method="POST" action="">
+                    {% csrf_token %}
+
+                    <label class="form-label mt-0">Song Title</label>
+                    <input type="text" class="form-control" name="songName" id="edit-title">
+
+                    <!-- SEARCHABLE ARTIST DROPDOWN -->
+                    <a href="/admin/songs/artist/" target="_blank" class="admin-link">+ Manage</a>
+                    <label class="form-label">Artists</label>
+                    <select id="artist-select" name="artists" multiple placeholder="Type to search artists...">
+                        {% for artist in artists %}
+                            <option value="{{ artist.id }}">{{ artist.artistName }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label class="form-label">Album</label>
+                    <input type="text" class="form-control" name="album" id="edit-album">
+
+                    <div class="row">
+                        <div class="col-6">
+                            <a href="/admin/songs/genre/" target="_blank" class="admin-link">+ Manage</a>
+                            <label class="form-label">Genres</label>
+                            <div class="checkbox-scroll">
+                                {% for genre in genres %}
+                                    <label>
+                                        <input type="checkbox" name="genres" value="{{ genre.id }}">
+                                        {{ genre.genreName }}
+                                    </label>
+                                {% empty %}
+                                    <span class="text-muted" style="font-size:0.8rem;">None in DB</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <a href="/admin/songs/language/" target="_blank" class="admin-link">+ Manage</a>
+                            <label class="form-label">Languages</label>
+                            <div class="checkbox-scroll">
+                                {% for lang in languages %}
+                                    <label>
+                                        <input type="checkbox" name="languages" value="{{ lang.id }}">
+                                        {{ lang.langName }}
+                                    </label>
+                                {% empty %}
+                                    <span class="text-muted" style="font-size:0.8rem;">None in DB</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <a href="/admin/songs/tag/" target="_blank" class="admin-link">+ Manage</a>
+                            <label class="form-label">Tags</label>
+                            <div class="checkbox-scroll">
+                                {% for tag in tags %}
+                                    <label>
+                                        <input type="checkbox" name="tags" value="{{ tag.id }}">
+                                        {{ tag.tagName }}
+                                    </label>
+                                {% empty %}
+                                    <span class="text-muted" style="font-size:0.8rem;">None in DB</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <a href="/admin/songs/mytag/" target="_blank" class="admin-link">+ Manage</a>
+                            <label class="form-label">My Tags</label>
+                            <div class="checkbox-scroll">
+                                {% for mt in mytags %}
+                                    <label>
+                                        <input type="checkbox" name="mytags" value="{{ mt.id }}">
+                                        {{ mt.name }}
+                                    </label>
+                                {% empty %}
+                                    <span class="text-muted" style="font-size:0.8rem;">None in DB</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-1">
+                        <div class="col-4">
+                            <label class="form-label">Year</label>
+                            <input type="text" class="form-control" name="year" id="edit-year">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Plays</label>
+                            <input type="number" class="form-control" name="playCount" id="edit-playcount">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Length</label>
+                            <input type="text" class="form-control" name="songLength" id="edit-length">
+                        </div>
+                    </div>
+
+                    <label class="form-label">ISRC</label>
+                    <input type="text" class="form-control" name="isrc" id="edit-isrc">
+
+                    <div class="d-grid mt-4 pb-5">
+                        <button type="submit" class="btn accent-bg text-dark fw-bold py-2">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<script>
+    // Initialize Tom Select on the artist dropdown
+    var artistSelect = new TomSelect("#artist-select", {
+        plugins: ["remove_button"],
+        create: false,
+        maxOptions: 500,
+        sortField: { field: "text", direction: "asc" }
+    });
+
+    function setCheckboxes(inputName, commaSeparatedIds) {
+        var ids = commaSeparatedIds ? commaSeparatedIds.split(",") : [];
+        document.querySelectorAll('input[name="' + inputName + '"]').forEach(function(cb) {
+            cb.checked = ids.indexOf(cb.value) !== -1;
+        });
+    }
+
+    function selectSong(rowElement) {
+        // Highlight row
+        document.querySelectorAll(".song-row").forEach(function(row) {
+            row.classList.remove("row-active");
+        });
+        rowElement.classList.add("row-active");
+
+        var ds = rowElement.dataset;
+
+        // Point form at the correct edit URL
+        document.getElementById("metadataForm").action = "/songs/edit/" + ds.id + "/";
+
+        // Header display
+        document.getElementById("display-title").innerText = ds.title || "";
+        document.getElementById("display-artist").innerText = ds.artistNames || "Unknown Artist";
+
+        // Text fields
+        document.getElementById("edit-title").value = ds.title || "";
+        document.getElementById("edit-album").value = ds.album || "";
+        document.getElementById("edit-year").value = ds.year || "";
+        document.getElementById("edit-length").value = ds.length || "";
+        document.getElementById("edit-playcount").value = ds.playcount || 0;
+        document.getElementById("edit-isrc").value = ds.isrc || "";
+
+        // Tom Select artists  (e.g. "1,3" → ["1","3"])
+        var artistIds = ds.artistIds ? ds.artistIds.split(",") : [];
+        artistSelect.setValue(artistIds, true);
+
+        // Checkboxes
+        setCheckboxes("genres", ds.genreIds);
+        setCheckboxes("languages", ds.langIds);
+        setCheckboxes("tags", ds.tagIds);
+        setCheckboxes("mytags", ds.mytagIds);
+
+        // Show the form
+        document.getElementById("no-selection-msg").style.display = "none";
+        document.getElementById("edit-form-container").style.display = "block";
+    }
+</script>
+</body>
+</html>

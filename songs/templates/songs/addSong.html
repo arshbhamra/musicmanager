@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Song</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- 1. ADD TOM SELECT CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    
+    <style>
+        body { background-color: #121212; color: #b3b3b3; font-family: sans-serif; padding-top: 40px; }
+        .accent-bg { background-color: #1ed760; color: black; font-weight: bold; }
+        .card { background-color: #181818; border: 1px solid #282828; }
+        .form-control { background-color: #282828; border: 1px solid #333; color: white; }
+        .form-control:focus { background-color: #333; color: white; border-color: #1ed760; box-shadow: none; }
+        .form-label { color: #e0e0e0; font-size: 0.9rem; margin-top: 15px; }
+        
+        .checkbox-scroll { max-height: 130px; overflow-y: auto; background-color: #282828; border: 1px solid #333; border-radius: 5px; padding: 10px; }
+        .checkbox-scroll label { display: block; color: #b3b3b3; cursor: pointer; margin-bottom: 3px;}
+        .admin-link { float: right; font-size: 0.75rem; color: #1ed760; text-decoration: none; margin-top: 18px; }
+
+        /* 2. TOM SELECT DARK MODE OVERRIDES */
+        .ts-control { background-color: #282828; border: 1px solid #333; color: white; }
+        .ts-control input { color: white; }
+        .ts-dropdown { background-color: #282828; border: 1px solid #333; color: white; }
+        .ts-dropdown .option { color: #b3b3b3; }
+        .ts-dropdown .option:hover, .ts-dropdown .option.active { background-color: #1ed760; color: black; }
+        .ts-control .item { background-color: #1ed760; color: black; border-radius: 3px; border: none; }
+    </style>
+</head>
+<body>
+
+<div class="container pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white">➕ Add New Song</h2>
+        <a href="{% url 'song_list' %}" class="btn btn-outline-light me-2">Back to Library</a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success bg-dark text-success border-success">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card p-4">
+        <form method="POST" action="">
+            {% csrf_token %}
+            <div class="row">
+                <!-- LEFT COLUMN -->
+                <div class="col-md-6 border-end border-secondary pe-4">
+                    <label class="form-label mt-0">Song Title *</label>
+                    <input type="text" class="form-control" name="songName" required>
+
+                    <label class="form-label">Album</label>
+                    <input type="text" class="form-control" name="album">
+
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="form-label">Year</label>
+                            <input type="text" class="form-control" name="year">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Duration</label>
+                            <input type="text" class="form-control" name="songLength">
+                        </div>
+                    </div>
+                    <label class="form-label">ISRC</label>
+                    <input type="text" class="form-control" name="isrc">
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div class="col-md-6 ps-4">
+                    <!-- 3. NEW SEARCHABLE ARTIST DROPDOWN -->
+                    <a href="/admin/songs/artist/" target="_blank" class="admin-link mt-0">+ Manage</a>
+                    <label class="form-label mt-0">Artists</label>
+                    <select id="artist-select" name="artists" multiple placeholder="Type to search artists...">
+                        {% for artist in artists %}
+                            <option value="{{ artist.id }}">{{ artist.artistName }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <a href="/admin/songs/genre/" target="_blank" class="admin-link">+ Manage</a>
+                            <label class="form-label">Genres</label>
+                            <div class="checkbox-scroll">
+                                {% for genre in genres %}
+                                    <label><input type="checkbox" name="genres" value="{{ genre.id }}"> {{ genre.genreName }}</label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <a href="/admin/songs/language/" target="_blank" class="admin-link">+ Manage</a>
+                            <label class="form-label">Languages</label>
+                            <div class="checkbox-scroll">
+                                {% for lang in languages %}
+                                    <label><input type="checkbox" name="languages" value="{{ lang.id }}"> {{ lang.langName }}</label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tags & MyTags omitted for brevity, keep them the same as previous file -->
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="form-label">Tags</label>
+                            <div class="checkbox-scroll">
+                                {% for tag in tags %}<label><input type="checkbox" name="tags" value="{{ tag.id }}"> {{ tag.tagName }}</label>{% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">My Tags</label>
+                            <div class="checkbox-scroll">
+                                {% for mt in mytags %}<label><input type="checkbox" name="mytags" value="{{ mt.id }}"> {{ mt.name }}</label>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <hr class="border-secondary my-4">
+            <button type="submit" class="btn accent-bg w-100 py-2 fs-5">Save New Song</button>
+        </form>
+    </div>
+</div>
+
+<!-- 4. ADD TOM SELECT JS -->
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<script>
+    // Initialize the searchable dropdown
+    new TomSelect("#artist-select",{
+        plugins: ['remove_button'],
+        create: false, // Prevents typing artists that aren't in the DB
+    });
+</script>
+
+</body>
+</html>
