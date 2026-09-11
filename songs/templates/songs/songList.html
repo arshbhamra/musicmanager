@@ -1,3 +1,4 @@
+<!-- songs/templates/songs/songList.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,167 +7,155 @@
     <title>Music Library</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    
+
     <style>
-        body {
-            background-color: #121212;
-            color: #b3b3b3;
-            height: 100vh;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
+        /* ===== GLOBAL DARK ===== */
+        body { background-color: #0a0a0a; color: #b3b3b3; height: 100vh; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         .accent-bg { background-color: #1ed760; color: black; border: none; }
         .accent-bg:hover { background-color: #1db954; color: black; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
 
-        .library-panel {
-            height: 100vh;
-            overflow-y: auto;
-            border-right: 1px solid #282828;
-            padding: 20px;
+        /* ===== LAYOUT GRID ===== */
+        .app-wrapper { display: flex; height: calc(100vh - 90px); overflow: hidden; }
+
+        /* ===== LEFT SIDEBAR ===== */
+        .side-nav {
+            width: 200px; min-width: 200px; background: #0d0d0d;
+            border-right: 1px solid #222; padding: 24px 16px; display: flex;
+            flex-direction: column; gap: 4px;
         }
-        .table { --bs-table-bg: transparent; color: #b3b3b3; }
-        .table th { color: #888; border-bottom: 1px solid #282828; font-weight: normal; }
-        .table td {
-            border-bottom: none;
-            padding: 12px 8px;
-            vertical-align: middle;
-            cursor: pointer;
-            color: #e0e0e0;
-        }
-        .table tbody tr:hover td { background-color: #2a2a2a; }
-        .row-active td { background-color: #2a2a2a; }
-        .row-active td:first-child { border-left: 4px solid #1ed760; }
+        .side-nav .logo { color: #fff; font-weight: bold; font-size: 1.1rem; margin-bottom: 24px; letter-spacing: 0.5px; }
+        .side-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; color: #888; text-decoration: none; font-size: 0.85rem; transition: all .15s; }
+        .side-nav a:hover { background: #1a1a1a; color: #fff; }
+        .side-nav a.active { background: #1a1a1a; color: #1ed760; font-weight: 600; }
+        .side-nav .section-label { color: #555; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 20px; margin-bottom: 6px; padding-left: 12px; }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-stage { flex: 1; display: flex; overflow: hidden; }
+        .library-panel { width: 62%; height: 100%; overflow-y: auto; padding: 20px; border-right: 1px solid #181818; }
+        .edit-panel { width: 38%; height: 100%; overflow-y: auto; background: #121212; padding: 24px; }
+
+        /* ===== HEADER IN MAIN ===== */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; }
+        .search-box { background: #181818; border: 1px solid #2a2a2a; color: #fff; border-radius: 20px; padding: 6px 16px; width: 260px; font-size: 0.85rem; }
+        .search-box::placeholder { color: #666; }
+
+        /* ===== TABLE ===== */
+        .table { --bs-table-bg: transparent; color: #ffffff; font-size: 0.85rem; }
+        .table th { color: #888; border-bottom: 1px solid #222; font-weight: 500; padding: 10px 8px; }
+        .table td { border-bottom: none; padding: 10px 8px; vertical-align: middle; cursor: pointer; }
+        .table tbody tr:hover td { background: #181818; border-radius: 6px; }
+        .row-active td { background: #181818 !important; border-radius: 6px; }
+        .row-active td:first-child { border-left: 3px solid #1ed760; }
         .row-active .song-title { color: #1ed760; font-weight: bold; }
-        .badge-genre {
-            background-color: #1a1a1a;
-            color: #1ed760;
-            border: 1px solid #1ed760;
-            font-weight: normal;
-        }
+        .badge-genre { background: #111; color: #1ed760; border: 1px solid #1ed760; font-weight: normal; font-size: 0.7rem; }
 
-        .edit-panel {
-            height: 100vh;
-            overflow-y: auto;
-            background-color: #181818;
-            padding: 30px;
-        }
-        .form-control {
-            background-color: #282828;
-            border: 1px solid #333;
-            color: white;
-            font-size: 0.85rem;
-        }
-        .form-control:focus {
-            background-color: #333;
-            color: white;
-            border-color: #1ed760;
-            box-shadow: none;
-        }
-        .form-label {
-            font-size: 0.8rem;
-            margin-bottom: 2px;
-            margin-top: 10px;
-            color: #888;
-        }
+        /* ===== EDIT FORM ===== */
+        .album-art-placeholder { width: 120px; height: 120px; background: linear-gradient(135deg, #222, #333); border-radius: 8px; margin: 0 auto 16px; box-shadow: 0 8px 20px rgba(0,0,0,.6); }
+        .form-control { background: #0f0f0f; border: 1px solid #2a2a2a; color: #fff; font-size: 0.85rem; border-radius: 6px; }
+        .form-control:focus { background: #161616; border-color: #1ed760; box-shadow: none; }
+        .form-label { color: #888; font-size: 0.75rem; margin-bottom: 4px; margin-top: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .checkbox-scroll {
-            max-height: 90px;
-            overflow-y: auto;
-            background-color: #282828;
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 6px;
-        }
-        .checkbox-scroll label {
-            display: block;
-            color: #b3b3b3;
-            cursor: pointer;
-            margin-bottom: 2px;
-            font-size: 0.85rem;
-        }
-        .checkbox-scroll label:hover { color: #fff; }
-        .checkbox-scroll input { margin-right: 6px; accent-color: #1ed760; }
+        /* ===== TOM SELECT DARK ===== */
+        .ts-wrapper .ts-control { background: #0f0f0f !important; border: 1px solid #2a2a2a !important; border-radius: 6px; color: #fff !important; padding: 6px; }
+        .ts-dropdown { background: #161616 !important; border: 1px solid #2a2a2a !important; color: #fff; }
+        .ts-dropdown .option:hover, .ts-dropdown .option.active { background: #1ed760 !important; color: #000 !important; }
+        .ts-control .item { background: #1ed760 !important; color: #000 !important; border-radius: 4px; border: none !important; }
 
-        .admin-link {
-            float: right;
-            font-size: 0.7rem;
-            color: #1ed760;
-            text-decoration: none;
-            margin-top: 12px;
-        }
+        /* ===== CHECKBOX LISTS ===== */
+        .check-scroll { max-height: 100px; overflow-y: auto; background: #0f0f0f; border: 1px solid #222; border-radius: 6px; padding: 8px; }
+        .check-scroll label { display: block; color: #aaa; font-size: 0.8rem; cursor: pointer; margin-bottom: 3px; }
+        .check-scroll label:hover { color: #fff; }
+        .check-scroll input { margin-right: 8px; accent-color: #1ed760; }
+
+        /* ===== ADMIN LINKS ===== */
+        .admin-link { float: right; font-size: 0.7rem; color: #1ed760; text-decoration: none; }
         .admin-link:hover { color: #fff; }
 
-        /* Tom Select dark mode */
-        .ts-wrapper { margin-bottom: 0; }
-        .ts-control {
-            background-color: #282828 !important;
-            border: 1px solid #333 !important;
-            color: white !important;
-            border-radius: 4px;
-            padding: 6px;
-            min-height: 38px;
+        /* ===== BOTTOM PLAYER BAR ===== */
+        .player-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 80px;
+            background: linear-gradient(90deg, #0a0a0a 0%, #0d0d12 100%);
+            border-top: 1px solid #1a1a1a; display: flex; align-items: center;
+            padding: 0 24px; z-index: 1000; box-shadow: 0 -10px 30px rgba(0,0,0,.8);
         }
-        .ts-control input { color: white !important; }
-        .ts-dropdown {
-            background-color: #282828 !important;
-            border: 1px solid #333 !important;
-            color: white;
-        }
-        .ts-dropdown .option { color: #b3b3b3; padding: 8px 12px; }
-        .ts-dropdown .option:hover,
-        .ts-dropdown .option.active {
-            background-color: #1ed760 !important;
-            color: black !important;
-        }
-        .ts-control .item {
-            background-color: #1ed760 !important;
-            color: black !important;
-            border-radius: 3px;
-            border: none !important;
-            margin: 2px;
-            padding: 2px 8px;
-        }
-        .ts-control .item .remove {
-            border-left: 1px solid rgba(0,0,0,0.2);
-            color: black !important;
-        }
+        .player-art { width: 56px; height: 56px; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+        .player-art img { width: 100%; height: 100%; object-fit: cover; }
+        .player-info { margin-left: 16px; min-width: 180px; flex-shrink: 0; }
+        .player-info h5 { margin: 0; color: #fff; font-size: 0.95rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .player-info p { margin: 0; color: #777; font-size: 0.75rem; white-space: nowrap; }
 
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #121212; }
-        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        .player-stars { display: flex; gap: 4px; color: #1ed760; font-size: 1.1rem; flex-shrink: 0; margin-left: 24px; }
+        .player-stars span:hover { color: #fff; cursor: pointer; }
+
+        .player-controls { flex: 1; display: flex; align-items: center; justify-content: center; gap: 16px; }
+        .player-btn { background: #1ed760; color: #000; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: transform .1s; cursor: pointer; }
+        .player-btn:hover { transform: scale(1.05); background: #fff; }
+
+        .seek-row { width: 100%; max-width: 500px; display: flex; align-items: center; gap: 10px; font-size: 0.75rem; color: #777; }
+        .seek-row input[type="range"] { flex: 1; accent-color: #1ed760; height: 4px; }
     </style>
 </head>
 <body>
 
-<div class="container-fluid p-0">
-    <div class="row g-0">
+<div class="app-wrapper">
 
-        <!-- ================= LEFT PANEL ================= -->
-        <div class="col-md-8 library-panel">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <input type="text" class="form-control w-25 rounded-pill" placeholder="Search library...">
-                <a href="{% url 'add_song' %}" class="btn accent-bg rounded-circle fw-bold"
-                   style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;text-decoration:none;">+</a>
+    <!-- ===== LEFT SIDEBAR NAV ===== -->
+    <aside class="side-nav">
+        <div class="logo">Music Manager</div>
+
+        <a href="{% url 'song_list' %}" class="active">
+            <span>🎵</span> Songs
+        </a>
+        <a href="#">
+            <span>🎤</span> Artists
+        </a>
+        <a href="#">
+            <span>💿</span> Albums
+        </a>
+        <a href="#">
+            <span>🎸</span> Genres
+        </a>
+        <a href="#">
+            <span>📋</span> Playlists
+        </a>
+        <a href="#">
+            <span>🏷️</span> Tags
+        </a>
+
+        <div class="section-label">Library</div>
+        <a href="#">
+            <span>⚡</span> Favorites
+        </a>
+    </aside>
+
+    <!-- ===== MAIN STAGE (Table + Edit) ===== -->
+    <div class="main-stage">
+        <!-- Library Table -->
+        <section class="library-panel">
+            <div class="top-bar">
+                <input type="text" class="search-box" placeholder="Search library..." oninput="liveFilter(this.value)">
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{% url 'add_song' %}" class="btn accent-bg btn-sm px-3">Import Folder</a>
+                    <div style="width:36px;height:36px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.8rem;">A</div>
+                </div>
             </div>
 
             {% if messages %}
                 {% for message in messages %}
-                    <div class="alert alert-success bg-dark text-success border-success py-2">{{ message }}</div>
+                    <div class="alert alert-success bg-dark text-success border-success py-2 mb-3">{{ message }}</div>
                 {% endfor %}
             {% endif %}
 
             <table class="table">
                 <thead>
                     <tr>
-                        <th style="width:5%">#</th>
-                        <th style="width:30%">Title</th>
-                        <th style="width:25%">Artist</th>
-                        <th style="width:20%">Album</th>
-                        <th style="width:10%">Genre</th>
-                        <th style="width:10%">Time</th>
+                        <th>#</th><th>Title</th><th>Artist</th><th>Album</th><th>Genre</th><th>Time</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="table-body">
                     {% for song in songs %}
                     <tr class="song-row"
                         onclick="selectSong(this)"
@@ -189,9 +178,7 @@
                         <td>
                             {% for artist in song.artists.all|slice:":2" %}
                                 {{ artist.artistName }}{% if not forloop.last %}, {% endif %}
-                            {% empty %}
-                                <span class="text-muted">Unknown</span>
-                            {% endfor %}
+                            {% empty %}<span class="text-muted">Unknown</span>{% endfor %}
                         </td>
                         <td>{{ song.album }}</td>
                         <td>
@@ -202,32 +189,29 @@
                         <td>{{ song.songLength }}</td>
                     </tr>
                     {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center py-5">No songs found. Click + to add one.</td>
-                    </tr>
+                    <tr><td colspan="6" class="text-center py-5">No songs found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
+        </section>
 
-        <!-- ================= RIGHT PANEL ================= -->
-        <div class="col-md-4 edit-panel">
-
+        <!-- Edit Panel -->
+        <section class="edit-panel">
             <div id="no-selection-msg" class="text-center mt-5 text-muted">
-                <p style="font-size:1.1rem;">Select a song to edit details</p>
+                <p>Select a song to edit details</p>
             </div>
 
             <div id="edit-form-container" style="display:none;">
-                <h4 id="display-title" class="text-center text-white mb-0 mt-2">Song Title</h4>
-                <p id="display-artist" class="text-center text-secondary mb-3">Artist Name</p>
+                <div class="album-art-placeholder"></div>
+                <h4 id="display-title" class="text-center text-white mb-0">Song Title</h4>
+                <p id="display-artist" class="text-center text-secondary mb-4">Artist</p>
 
                 <form id="metadataForm" method="POST" action="">
                     {% csrf_token %}
 
-                    <label class="form-label mt-0">Song Title</label>
+                    <label class="form-label">Song Title</label>
                     <input type="text" class="form-control" name="songName" id="edit-title">
 
-                    <!-- SEARCHABLE ARTIST DROPDOWN -->
                     <a href="/admin/songs/artist/" target="_blank" class="admin-link">+ Manage</a>
                     <label class="form-label">Artists</label>
                     <select id="artist-select" name="artists" multiple placeholder="Type to search artists...">
@@ -243,28 +227,18 @@
                         <div class="col-6">
                             <a href="/admin/songs/genre/" target="_blank" class="admin-link">+ Manage</a>
                             <label class="form-label">Genres</label>
-                            <div class="checkbox-scroll">
+                            <div class="check-scroll">
                                 {% for genre in genres %}
-                                    <label>
-                                        <input type="checkbox" name="genres" value="{{ genre.id }}">
-                                        {{ genre.genreName }}
-                                    </label>
-                                {% empty %}
-                                    <span class="text-muted" style="font-size:0.8rem;">None in DB</span>
+                                    <label><input type="checkbox" name="genres" value="{{ genre.id }}"> {{ genre.genreName }}</label>
                                 {% endfor %}
                             </div>
                         </div>
                         <div class="col-6">
                             <a href="/admin/songs/language/" target="_blank" class="admin-link">+ Manage</a>
                             <label class="form-label">Languages</label>
-                            <div class="checkbox-scroll">
+                            <div class="check-scroll">
                                 {% for lang in languages %}
-                                    <label>
-                                        <input type="checkbox" name="languages" value="{{ lang.id }}">
-                                        {{ lang.langName }}
-                                    </label>
-                                {% empty %}
-                                    <span class="text-muted" style="font-size:0.8rem;">None in DB</span>
+                                    <label><input type="checkbox" name="languages" value="{{ lang.id }}"> {{ lang.langName }}</label>
                                 {% endfor %}
                             </div>
                         </div>
@@ -272,36 +246,24 @@
 
                     <div class="row">
                         <div class="col-6">
-                            <a href="/admin/songs/tag/" target="_blank" class="admin-link">+ Manage</a>
                             <label class="form-label">Tags</label>
-                            <div class="checkbox-scroll">
+                            <div class="check-scroll">
                                 {% for tag in tags %}
-                                    <label>
-                                        <input type="checkbox" name="tags" value="{{ tag.id }}">
-                                        {{ tag.tagName }}
-                                    </label>
-                                {% empty %}
-                                    <span class="text-muted" style="font-size:0.8rem;">None in DB</span>
+                                    <label><input type="checkbox" name="tags" value="{{ tag.id }}"> {{ tag.tagName }}</label>
                                 {% endfor %}
                             </div>
                         </div>
                         <div class="col-6">
-                            <a href="/admin/songs/mytag/" target="_blank" class="admin-link">+ Manage</a>
                             <label class="form-label">My Tags</label>
-                            <div class="checkbox-scroll">
+                            <div class="check-scroll">
                                 {% for mt in mytags %}
-                                    <label>
-                                        <input type="checkbox" name="mytags" value="{{ mt.id }}">
-                                        {{ mt.name }}
-                                    </label>
-                                {% empty %}
-                                    <span class="text-muted" style="font-size:0.8rem;">None in DB</span>
+                                    <label><input type="checkbox" name="mytags" value="{{ mt.id }}"> {{ mt.name }}</label>
                                 {% endfor %}
                             </div>
                         </div>
                     </div>
 
-                    <div class="row mt-1">
+                    <div class="row mt-2">
                         <div class="col-4">
                             <label class="form-label">Year</label>
                             <input type="text" class="form-control" name="year" id="edit-year">
@@ -320,70 +282,239 @@
                     <input type="text" class="form-control" name="isrc" id="edit-isrc">
 
                     <div class="d-grid mt-4 pb-5">
-                        <button type="submit" class="btn accent-bg text-dark fw-bold py-2">
-                            Save Changes
-                        </button>
+                        <button type="submit" class="btn accent-bg text-dark fw-bold py-2">Save Changes</button>
                     </div>
                 </form>
             </div>
+        </section>
+    </div>
+</div>
+
+<!-- ===== FIXED BOTTOM PLAYER BAR ===== -->
+<div class="player-bar">
+    <div class="player-art">
+        <img id="player-img" src="https://via.placeholder.com/56/1ed760/000000?text=♫" alt="art">
+    </div>
+
+    <div class="player-info">
+        <h5 id="player-title">Select a Song</h5>
+        <p id="player-artist">No artist selected</p>
+    </div>
+
+    <div class="player-stars" id="player-stars" title="Rate this song">
+        <span onclick="rateSong(1)" id="s1">★</span>
+        <span onclick="rateSong(2)" id="s2">★</span>
+        <span onclick="rateSong(3)" id="s3">★</span>
+        <span onclick="rateSong(4)" id="s4">★</span>
+        <span onclick="rateSong(5)" id="s5">★</span>
+    </div>
+
+    <div class="player-controls">
+        <audio id="global-player" preload="none"></audio>
+        <button onclick="togglePlay()" id="play-btn" class="player-btn" title="Play via yt-dlp">▶</button>
+        <div class="seek-row">
+            <span id="cur-time">0:00</span>
+            <input type="range" id="seek-bar" value="0" min="0" max="100" step="1" oninput="seekAudio(this.value)">
+            <span id="dur-time">0:00</span>
         </div>
     </div>
 </div>
 
+<!-- ===== SCRIPTS ===== -->
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <script>
-    // Initialize Tom Select on the artist dropdown
+    // ===== Tom Select (edit panel) =====
     var artistSelect = new TomSelect("#artist-select", {
-        plugins: ["remove_button"],
-        create: false,
-        maxOptions: 500,
+        plugins: ["remove_button"], create: false, maxOptions: 500,
         sortField: { field: "text", direction: "asc" }
     });
 
-    function setCheckboxes(inputName, commaSeparatedIds) {
-        var ids = commaSeparatedIds ? commaSeparatedIds.split(",") : [];
-        document.querySelectorAll('input[name="' + inputName + '"]').forEach(function(cb) {
+    // ===== Helpers =====
+    function setCheckboxes(name, csvIds) {
+        var ids = csvIds ? csvIds.split(",") : [];
+        document.querySelectorAll('input[name="' + name + '"]').forEach(function (cb) {
             cb.checked = ids.indexOf(cb.value) !== -1;
         });
     }
 
-    function selectSong(rowElement) {
-        // Highlight row
-        document.querySelectorAll(".song-row").forEach(function(row) {
-            row.classList.remove("row-active");
+    function liveFilter(query) {
+        var q = query.toLowerCase();
+        document.querySelectorAll(".song-row").forEach(function (row) {
+            row.style.display = row.innerText.toLowerCase().indexOf(q) > -1 ? "" : "none";
         });
-        rowElement.classList.add("row-active");
+    }
 
-        var ds = rowElement.dataset;
+    function fmt(sec) {
+        if (!sec || sec < 0 || !isFinite(sec)) return "0:00";
+        var m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+        return m + ":" + (s < 10 ? "0" + s : s);
+    }
 
-        // Point form at the correct edit URL
+    // ===== PLAYER STATE =====
+    var audio = document.getElementById("global-player");
+    var playBtn = document.getElementById("play-btn");
+    audio.loop = false;                 // explicit: never repeat
+
+    var selectedSongId = null;          // song clicked in table
+    var loadedSongId = null;            // song currently inside <audio>
+    var isLoading = false;              // guard against double-clicks
+    var streamCache = {};               // { songId: "https://stream-url..." }
+
+    function getSelectedRow() {
+        return document.querySelector('.song-row[data-id="' + selectedSongId + '"]');
+    }
+
+    function getStreamUrl(songId) {
+        var row = getSelectedRow();
+        if (!row) return Promise.reject("Row not found");
+        var ds = row.dataset;
+        var title = ds.title || "";
+        var artist = ds.artistNames ? ds.artistNames.split(",")[0] : "";
+
+        if (streamCache[songId]) {
+            return Promise.resolve(streamCache[songId]);
+        }
+
+        return fetch("/songs/play/?title=" + encodeURIComponent(title) +
+                     "&artist=" + encodeURIComponent(artist))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data.url) throw (data.error || "No stream found");
+                streamCache[songId] = data.url;   // cache it
+                return data.url;
+            });
+    }
+
+    // ===== SONG SELECTION =====
+    function selectSong(row) {
+        document.querySelectorAll(".song-row").forEach(function (r) {
+            r.classList.remove("row-active");
+        });
+        row.classList.add("row-active");
+
+        var ds = row.dataset;
+        selectedSongId = ds.id;
+
+        // Fill edit form (unchanged)
         document.getElementById("metadataForm").action = "/songs/edit/" + ds.id + "/";
-
-        // Header display
-        document.getElementById("display-title").innerText = ds.title || "";
-        document.getElementById("display-artist").innerText = ds.artistNames || "Unknown Artist";
-
-        // Text fields
         document.getElementById("edit-title").value = ds.title || "";
         document.getElementById("edit-album").value = ds.album || "";
         document.getElementById("edit-year").value = ds.year || "";
         document.getElementById("edit-length").value = ds.length || "";
-        document.getElementById("edit-playcount").value = ds.playcount || 0;
         document.getElementById("edit-isrc").value = ds.isrc || "";
-
-        // Tom Select artists  (e.g. "1,3" → ["1","3"])
-        var artistIds = ds.artistIds ? ds.artistIds.split(",") : [];
-        artistSelect.setValue(artistIds, true);
-
-        // Checkboxes
+        document.getElementById("edit-playcount").value = ds.playcount || 0;
+        artistSelect.setValue(ds.artistIds ? ds.artistIds.split(",") : [], true);
         setCheckboxes("genres", ds.genreIds);
         setCheckboxes("languages", ds.langIds);
         setCheckboxes("tags", ds.tagIds);
         setCheckboxes("mytags", ds.mytagIds);
-
-        // Show the form
+        document.getElementById("display-title").innerText = ds.title || "";
+        document.getElementById("display-artist").innerText = ds.artistNames || "Unknown Artist";
         document.getElementById("no-selection-msg").style.display = "none";
         document.getElementById("edit-form-container").style.display = "block";
+
+        // Update player bar info immediately
+        document.getElementById("player-title").innerText = ds.title || "Unknown";
+        document.getElementById("player-artist").innerText = ds.artistNames || "";
+
+        // ⭐ PREFETCH: start fetching the stream URL in the background NOW.
+        // By the time the user presses ▶, it's usually already cached = instant play.
+        getStreamUrl(selectedSongId).catch(function () { /* fail silently, play btn will retry */ });
+    }
+
+    // ===== PLAY / PAUSE =====
+    function togglePlay() {
+        if (isLoading) return;          // ignore clicks while fetching
+
+        if (!selectedSongId) {
+            alert("Select a song from the library first.");
+            return;
+        }
+
+        // CASE A: same song already loaded → simple pause/resume
+        if (loadedSongId === selectedSongId && audio.src) {
+            if (audio.paused) {
+                audio.play();
+                playBtn.innerText = "⏸";
+            } else {
+                audio.pause();
+                playBtn.innerText = "▶";
+            }
+            return;
+        }
+
+        // CASE B: different song selected → STOP old song completely, load new one
+        isLoading = true;
+        playBtn.innerText = "⏳";        // loading indicator
+
+        audio.pause();
+        audio.removeAttribute("src");    // fully detach old stream
+        audio.load();
+        loadedSongId = null;
+
+        getStreamUrl(selectedSongId)
+            .then(function (url) {
+                // Guard: user may have selected ANOTHER song while we were fetching
+                if (!selectedSongId) return;
+
+                audio.src = url;
+                audio.load();
+                loadedSongId = selectedSongId;
+
+                return audio.play().then(function () {
+                    playBtn.innerText = "⏸";
+                });
+            })
+            .catch(function (err) {
+                playBtn.innerText = "▶";
+                loadedSongId = null;
+                alert("Could not play: " + err);
+            })
+            .finally(function () {
+                isLoading = false;
+            });
+    }
+
+    // ===== AUDIO EVENTS =====
+    audio.addEventListener("timeupdate", function () {
+        if (audio.duration) {
+            document.getElementById("seek-bar").value = (audio.currentTime / audio.duration) * 100;
+            document.getElementById("cur-time").innerText = fmt(audio.currentTime);
+            document.getElementById("dur-time").innerText = fmt(audio.duration);
+        }
+    });
+
+    audio.addEventListener("loadedmetadata", function () {
+        document.getElementById("dur-time").innerText = fmt(audio.duration);
+    });
+
+    audio.addEventListener("ended", function () {
+        // Song finished: reset fully so next ▶ press does NOT restart old song
+        playBtn.innerText = "▶";
+        document.getElementById("seek-bar").value = 0;
+        document.getElementById("cur-time").innerText = "0:00";
+        loadedSongId = null;
+        audio.removeAttribute("src");
+        audio.load();
+    });
+
+    audio.addEventListener("error", function () {
+        if (loadedSongId) {   // stream died mid-play
+            playBtn.innerText = "▶";
+            loadedSongId = null;
+            delete streamCache[selectedSongId];  // drop bad URL so it refetches
+        }
+    });
+
+    function seekAudio(val) {
+        if (!audio.duration) return;
+        audio.currentTime = (audio.duration * val) / 100;
+    }
+
+    function rateSong(n) {
+        for (var i = 1; i <= 5; i++) {
+            document.getElementById("s" + i).style.color = i <= n ? "#fff" : "#1ed760";
+        }
     }
 </script>
 </body>

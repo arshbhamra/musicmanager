@@ -2,6 +2,9 @@
 from datetime import date
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.http import JsonResponse
+import subprocess
+
 
 from .models import (
     Song,
@@ -123,3 +126,37 @@ def _save_relations(request, song):
         mytag = MyTag.objects.filter(id=mt_id).first()
         if mytag:
             SongMyTag.objects.create(song=song, mytag=mytag)
+
+
+
+def play_song(request):
+    title = request.GET.get('title', '').strip()
+    artist = request.GET.get('artist', '').strip()
+    query = f"{title} {artist}".strip()
+
+    if not title:
+        return JsonResponse({"error": "No song selected"}, status=400)
+
+    try:
+        cmd = [
+            "yt-dlp",
+            "-f", "bestaudio",
+            "-g",                     # get URL only, no download
+            "--no-playlist",          # faster: don't parse playlists
+            "--no-warnings",
+            "--quiet",
+            f"ytsearch1:{query}",
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=25)
+        url = result.stdout.strip().split("\n")[0].strip()
+
+        if url and url.startswith("http"):
+            return JsonResponse({"url": url})
+        return JsonResponse({"error": "No audio found"}, status=404)
+
+    except subprocess.TimeoutExpired:
+        return JsonResponse({"error": "yt-dlp timed out"}, status=504)
+    except FileNotFoundError:
+        return JsonResponse({"error": "yt-dlp not installed on server"}, status=500)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
