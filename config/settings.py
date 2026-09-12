@@ -10,20 +10,21 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# SECURITY WARNING:git  keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = os.getenv("DEBUG") == 'True'
 # DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-# ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*"]
 
 
-ALLOWED_HOSTS = [
-    h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()
-]
-if DEBUG and "*" not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS += ["localhost", "127.0.0.1", "[::1]"]
+# ALLOWED_HOSTS = [
+#     h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()
+# ]
+
+# if DEBUG and "*" not in ALLOWED_HOSTS:
+#     ALLOWED_HOSTS += ["localhost", "127.0.0.1", "[::1]"]
 
 
 
